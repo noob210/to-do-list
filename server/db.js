@@ -1,9 +1,31 @@
 import { Pool } from "pg";
-import dotenv from "dotenv";
-
+import dotenv from "dotenv"
 dotenv.config();
 
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL?.includes("neon.tech") ? { rejectUnauthorized: false } : false,
-});
+let newPool;
+
+if (process.env.NODE_ENV === 'development') {
+    newPool = new Pool({
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASS,
+        database: process.env.DB_NAME,
+        port: process.env.DB_PORT,
+    });
+}
+
+else {
+    newPool = new Pool({
+        host: process.env.DB_HOST,
+        database: process.env.DB_NAME,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASS,
+        port: 5432,
+        ssl: {
+            rejectUnauthorized: false,
+        },
+        connectionString: `postgres://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:5432/${process.env.DB_NAME}?options=project=${process.env.ENDPOINT_ID}`,
+    });
+}
+
+export const pool = newPool;
