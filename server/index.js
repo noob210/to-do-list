@@ -20,22 +20,23 @@ app.get('/get-list', async (req, res) => {
 });
 
 
-app.get('/get-items/:id', (req, res) => {
-
+app.get('/get-items/:id', async (req, res) => {
     const listId = req.params.id;
 
-    const filtered = items.filter(
-        item => item.list_id == listId
+    const result = await pool.query(
+        'SELECT * FROM items WHERE list_id = $1',
+        [listId]
     );
+    const items = result.rows;
 
-    if(filtered.length === 0) {
-        res.status(200).json({ 
-            success: false, 
-            message: "List not found" 
+    if (items.length === 0) {
+        return res.status(200).json({
+            success: false,
+            message: "List not found"
         });
     }
 
-    res.status(200).json({ success: true, items: filtered });
+    res.status(200).json({ success: true, items });
 });
 
 app.post('/add-list', async(req, res) => {
